@@ -4,7 +4,6 @@ SETLOCAL ENABLEDELAYEDEXPANSION
 :: Настройки
 set ENV_NAME=my_project_env
 set PYTHON_VERSION=3.12
-set CONDA_PATH=E:\Anaconda3
 set REQUIREMENTS_FILE=requirements.txt
 set SMOKE_TEST_SCRIPT=broken_env.py
 
@@ -12,23 +11,42 @@ echo ==============================================
 echo Запуск setup_env.bat для проекта
 echo ==============================================
 
-:: Шаг 1: Проверяем, существует ли conda.bat по указанному пути
-echo [1] Проверка наличия conda...
-if not exist "%CONDA_PATH%\Scripts\conda.exe" (
-    echo [ERROR] Не удалось найти conda по пути: %CONDA_PATH%
-    echo Пожалуйста, проверьте правильность пути в файле setup_env.bat
+:: Шаг 1: Автоматический поиск conda
+echo [1] Поиск conda...
+
+set CONDA_FOUND=0
+set CONDA_PATHS=^
+%USERPROFILE%\anaconda3 ^
+%USERPROFILE%\Anaconda3 ^
+C:\ProgramData\Anaconda3 ^
+C:\Program Files\Anaconda3 ^
+C:\Anaconda3 ^
+D:\Anaconda3 ^
+E:\Anaconda3
+
+for %%p in (%CONDA_PATHS%) do (
+    if exist "%%p\Scripts\conda.exe" (
+        set CONDA_PATH=%%p
+        set CONDA_FOUND=1
+        echo [ok] Conda найдена по пути: %%p
+        goto :conda_found
+    )
+)
+
+:conda_found
+if !CONDA_FOUND! equ 0 (
+    echo [ERROR] Conda не найдена. Установите Anaconda или Miniconda.
     exit /b 1
 )
-echo [ok] Conda найдена.
 
 :: Шаг 2: Проверяем, существует ли уже окружение с таким именем
 echo [2] Проверка окружения %ENV_NAME%...
-call "%CONDA_PATH%\Scripts\conda.exe" env list | findstr /b "%ENV_NAME%" >nul
+call "!CONDA_PATH!\Scripts\conda.exe" env list | findstr /b "%ENV_NAME%" >nul
 if !errorlevel! equ 0 (
     echo [ok] Окружение %ENV_NAME% уже существует.
 ) else (
     echo Окружение не найдено. Создаю новое окружение %ENV_NAME% с Python %PYTHON_VERSION%...
-    call "%CONDA_PATH%\Scripts\conda.exe" create -n %ENV_NAME% python=%PYTHON_VERSION% -y
+    call "!CONDA_PATH!\Scripts\conda.exe" create -n %ENV_NAME% python=%PYTHON_VERSION% -y
     if !errorlevel! neq 0 (
         echo [ERROR] Не удалось создать окружение.
         exit /b 1
@@ -44,7 +62,7 @@ if not exist "%REQUIREMENTS_FILE%" (
 )
 
 echo Устанавливаю pandas через conda run...
-call "%CONDA_PATH%\Scripts\conda.exe" run -n %ENV_NAME% python -m pip install -r %REQUIREMENTS_FILE%
+call "!CONDA_PATH!\Scripts\conda.exe" run -n %ENV_NAME% python -m pip install -r %REQUIREMENTS_FILE%
 if !errorlevel! neq 0 (
     echo [ERROR] Не удалось установить зависимости.
     exit /b 1
@@ -53,7 +71,7 @@ echo [ok] Зависимости установлены.
 
 :: Шаг 4: Smoke test (проверка)
 echo [4] Запуск smoke test (%SMOKE_TEST_SCRIPT%)...
-call "%CONDA_PATH%\Scripts\conda.exe" run -n %ENV_NAME% python %SMOKE_TEST_SCRIPT%
+call "!CONDA_PATH!\Scripts\conda.exe" run -n %ENV_NAME% python %SMOKE_TEST_SCRIPT%
 if !errorlevel! equ 0 (
     echo ==============================================
     echo [ok] Скрипт выполнен успешно. Всё готово!
