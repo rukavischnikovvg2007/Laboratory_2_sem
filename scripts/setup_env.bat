@@ -2,7 +2,7 @@
 SETLOCAL ENABLEDELAYEDEXPANSION
 
 :: Settings
-set ENV_NAME=my_project_env
+set ENV_NAME=Laboratory_2_sem
 set PYTHON_VERSION=3.12
 set REQUIREMENTS_FILE=requirements.txt
 set SMOKE_TEST_SCRIPT=broken_env.py
