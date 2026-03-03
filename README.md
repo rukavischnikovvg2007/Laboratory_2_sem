@@ -25,31 +25,31 @@
 
 Если библиотеки не установлены:
 
-pip install -r requirements.txt
+`pip install -r requirements.txt`
 
 ### 2. Запуск скрипта
 Откройте командную строку (cmd), перейдите в корневую папку проекта и выполните:
 
-python src/extract.py
+`python src/extract.py`
 
 ### 3. Результат
 После успешного запуска в папке data/raw/ появится новый файл с именем:
 
-germany_gdp_per_capita_ГГГГММДД_ЧЧММСС.json
+`germany_gdp_per_capita_ГГГГММДД_ЧЧММСС.json`
 (где ГГГГММДД — дата, ЧЧММСС — время запуска)
 
 ### 4. Пример вывода в консоли
 text
-- [INFO] Запрашиваю URL: https://api.worldbank.org/v2/country/DEU/indicator/NY.GDP.PCAP.CD?format=json
-- [INFO] Параметры: {'per_page': 20000}
-- [OK] Данные сохранены в data/raw\germany_gdp_per_capita_20260303_143022.json
+- [INFO] Запрашиваю `URL: https://api.worldbank.org/v2/country/DEU/indicator/NY.GDP.PCAP.CD?format=json`
+- [INFO] Параметры: `{'per_page': 20000}`
+- [OK] Данные сохранены в `data/raw\germany_gdp_per_capita_20260303_143022.json`
 - [INFO] Загружено 64 записей, из них с данными: 63 лет
 - [INFO] Период: с 1960 по 2023
 
 ### 5. Возможные ошибки
-1. No such file or directory — вы не в корне проекта. Нужно перейти в папку Laboratory_2_sem-main
-2. Ошибки импорта — не установлены библиотеки. Выполните pip install -r requirements.txt
-3. Ошибка запроса — проверьте интернет или временно недоступен API World Bank.
+1.`No such file or directory` — вы не в корне проекта. Нужно перейти в папку `Laboratory_2_sem-main`
+2. Ошибки импорта — не установлены библиотеки. Выполните `pip install -r requirements.txt`
+3. Ошибка запроса — проверьте интернет или временно недоступен `API World Bank`.
 
 
 
