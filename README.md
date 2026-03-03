@@ -40,11 +40,11 @@ germany_gdp_per_capita_ГГГГММДД_ЧЧММСС.json
 
 ### 4. Пример вывода в консоли
 text
-1. [INFO] Запрашиваю URL: https://api.worldbank.org/v2/country/DEU/indicator/NY.GDP.PCAP.CD?format=json
-2. [INFO] Параметры: {'per_page': 20000}
-3. [OK] Данные сохранены в data/raw\germany_gdp_per_capita_20260303_143022.json
-4. [INFO] Загружено 64 записей, из них с данными: 63 лет
-5. [INFO] Период: с 1960 по 2023
+- [INFO] Запрашиваю URL: https://api.worldbank.org/v2/country/DEU/indicator/NY.GDP.PCAP.CD?format=json
+- [INFO] Параметры: {'per_page': 20000}
+- [OK] Данные сохранены в data/raw\germany_gdp_per_capita_20260303_143022.json
+- [INFO] Загружено 64 записей, из них с данными: 63 лет
+- [INFO] Период: с 1960 по 2023
 
 ### 5. Возможные ошибки
 1. No such file or directory — вы не в корне проекта. Нужно перейти в папку Laboratory_2_sem-main
