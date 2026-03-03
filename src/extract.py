@@ -1,7 +1,6 @@
 import requests
 import yaml
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 
@@ -23,14 +22,14 @@ print(f"[INFO] Параметры: {params}")
 # Делаем запрос
 try:
     response = requests.get(url, params=params, timeout=30)
-    response.raise_for_status()  # выбросит ошибку, если статус не 200
+    response.raise_for_status()
     data = response.json()
     
     # Создаём папку для сырых данных, если её нет
     raw_dir = Path("data/raw")
     raw_dir.mkdir(parents=True, exist_ok=True)
     
-    # Сохраняем с временной меткой
+    # Сохраняем с временной меткой - КАЖДЫЙ РАЗ НОВЫЙ ФАЙЛ
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = raw_dir / f"germany_gdp_per_capita_{timestamp}.json"
     
