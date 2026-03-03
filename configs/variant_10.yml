@@ -1,1 +1,42 @@
-
+variant_id: '10'
+theme: 'Макроэкономика (World Bank) - Германия: ВВП на душу (текущие долл. США)'
+source_type: world_bank
+entity:
+  country_iso3: DEU
+  country_name: Германия
+  indicator: NY.GDP.PCAP.CD
+  indicator_name: ВВП на душу (текущие долл. США)
+api:
+  base_url: https://api.worldbank.org/v2
+  method: GET
+  request_template: /country/DEU/indicator/NY.GDP.PCAP.CD?format=json
+  params:
+    per_page: 20000
+  notes: Ответ приходит списком записей по годам. Возьмите последние 30 лет или все
+    доступные.
+normalized_schema:
+- name: year
+  type: int
+  desc: Год.
+- name: value
+  type: float
+  desc: Значение индикатора (может быть NULL).
+- name: country_iso3
+  type: string
+  desc: ISO3 страны.
+- name: indicator
+  type: string
+  desc: Код индикатора.
+kpis:
+- Последнее доступное значение (latest_value) и год (latest_year).
+- 'Изменение за 10 лет: delta_10y = value(year) - value(year-10).'
+- Среднее значение за последние 10 лет (avg_10y).
+- Год максимума и минимума (без NULL).
+dq_rules:
+- year в разумных пределах (>= 1960 и <= текущий год).
+- value может быть NULL, но доля NULL должна быть посчитана и отражена в dq_report.
+- Дубликаты по (country_iso3, indicator, year) запрещены.
+dashboard_questions:
+- Какой тренд по индикатору за последние 30 лет?
+- Есть ли периоды резких провалов/скачков?
+- Сравнить последние 10 лет со средним за 30 лет (бар/линия).
