@@ -47,7 +47,7 @@ text
 - [INFO] Период: с 1960 по 2023
 
 ### 5. Возможные ошибки
-1.`No such file or directory` — вы не в корне проекта. Нужно перейти в папку `Laboratory_2_sem-main`
+1. `No such file or directory` — вы не в корне проекта. Нужно перейти в папку `Laboratory_2_sem-main`
 2. Ошибки импорта — не установлены библиотеки. Выполните `pip install -r requirements.txt`
 3. Ошибка запроса — проверьте интернет или временно недоступен `API World Bank`.
 
