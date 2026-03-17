@@ -34,3 +34,19 @@
   "obs_status": "",
   "decimal": 0
 }
+
+## Нормализованный слой (normalized)
+
+### Зерно таблицы
+Одна строка = одно значение ВВП на душу населения для Германии за один год
+
+### Схема данных (normalized)
+
+| Поле | Тип | Nullable | Описание | Источник в raw JSON |
+|------|-----|----------|----------|---------------------|
+| year | int | No | Год наблюдения | `date` |
+| value | float | Yes | ВВП на душу (текущие долл. США) | `value` |
+| country_iso3 | string | No | Код страны (DEU) | `country.id` |
+| country_name | string | No | Название страны | `country.value` |
+| indicator_code | string | No | Код индикатора | `indicator.id` |
+| indicator_name | string | No | Название индикатора | `indicator.value` |
