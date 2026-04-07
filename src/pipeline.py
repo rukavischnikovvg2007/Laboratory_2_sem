@@ -56,7 +56,7 @@ def run_pipeline(config_path, mode="full"):
     print()
     
     # 1. Загружаем состояние
-    state_path = Path("data/state.json")
+    state_path = Path("data/state/state.json")
     state = load_state(state_path)
     print(f"📁 Состояние загружено из {state_path}")
     print(f"   Последний успешный запуск: {state.get('last_successful_run', 'никогда')}")
