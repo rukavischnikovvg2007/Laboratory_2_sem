@@ -24,7 +24,6 @@ class TestDataQualityChecker:
         checker = DataQualityChecker(df, "test")
         checker.check_not_empty()
         
-        # Проверяем, что результат PASS
         assert checker.results[0]['status'] == 'PASS'
         assert '3 строк' in checker.results[0]['message']
     
@@ -33,11 +32,10 @@ class TestDataQualityChecker:
     # ------------------------------------------------------------
     def test_check_not_empty_negative(self):
         """Негативный тест: таблица пустая"""
-        df = pd.DataFrame()  # Пустой DataFrame
+        df = pd.DataFrame()
         checker = DataQualityChecker(df, "test")
         checker.check_not_empty()
         
-        # Проверяем, что результат FAIL
         assert checker.results[0]['status'] == 'FAIL'
         assert 'пустая' in checker.results[0]['message']
     
@@ -50,12 +48,11 @@ class TestDataQualityChecker:
         checker = DataQualityChecker(df, "test")
         checker.check_not_empty()
         
-        # Проверяем, что результат PASS (1 строка — это не пусто)
         assert checker.results[0]['status'] == 'PASS'
         assert '1 строк' in checker.results[0]['message']
     
     # ------------------------------------------------------------
-    # ПОЗИТИВНЫЙ ТЕСТ: нет NULL в колонке
+    # ПОЗИТИВНЫЙ ТЕСТ: нет NULL
     # ------------------------------------------------------------
     def test_check_no_null_positive(self):
         """Позитивный тест: нет NULL в колонке"""
@@ -66,7 +63,7 @@ class TestDataQualityChecker:
         assert checker.results[0]['status'] == 'PASS'
     
     # ------------------------------------------------------------
-    # НЕГАТИВНЫЙ ТЕСТ: есть NULL в колонке
+    # НЕГАТИВНЫЙ ТЕСТ: есть NULL
     # ------------------------------------------------------------
     def test_check_no_null_negative(self):
         """Негативный тест: есть NULL в колонке"""
@@ -94,24 +91,18 @@ class TestDataQualityChecker:
     # ------------------------------------------------------------
     def test_check_unique_key_positive(self):
         """Позитивный тест: ключ уникален"""
-        df = pd.DataFrame({
-            'id': [1, 2, 3],
-            'name': ['A', 'B', 'C']
-        })
+        df = pd.DataFrame({'id': [1, 2, 3], 'name': ['A', 'B', 'C']})
         checker = DataQualityChecker(df, "test")
         checker.check_unique_key(['id'])
         
         assert checker.results[0]['status'] == 'PASS'
     
     # ------------------------------------------------------------
-    # НЕГАТИВНЫЙ ТЕСТ: есть дубликаты ключа
+    # НЕГАТИВНЫЙ ТЕСТ: есть дубликаты
     # ------------------------------------------------------------
     def test_check_unique_key_negative(self):
         """Негативный тест: есть дубликаты ключа"""
-        df = pd.DataFrame({
-            'id': [1, 1, 2],
-            'name': ['A', 'A', 'B']
-        })
+        df = pd.DataFrame({'id': [1, 1, 2], 'name': ['A', 'A', 'B']})
         checker = DataQualityChecker(df, "test")
         checker.check_unique_key(['id'])
         
@@ -127,7 +118,6 @@ class TestDataQualityChecker:
         checker = DataQualityChecker(df, "test")
         checker.check_unique_key(['id'])
         
-        # Пустой DataFrame не имеет дубликатов
         assert checker.results[0]['status'] == 'PASS'
     
     # ------------------------------------------------------------
@@ -145,15 +135,15 @@ class TestDataQualityChecker:
     # НЕГАТИВНЫЙ ТЕСТ: значения вне диапазона
     # ------------------------------------------------------------
     def test_check_value_range_negative(self):
-    """Негативный тест: значения вне диапазона"""
-    df = pd.DataFrame({'value': [-10, 20, 200]})
-    checker = DataQualityChecker(df, "test")
-    checker.check_value_range('value', min_val=0, max_val=100)
-    
-    assert checker.results[0]['status'] == 'FAIL'
-    # Проверяем, что в сообщении есть слово о нарушениях (в любом падеже)
-    message = checker.results[0]['message']
-    assert 'Нарушения' in message or 'нарушения' in message
+        """Негативный тест: значения вне диапазона"""
+        df = pd.DataFrame({'value': [-10, 20, 200]})
+        checker = DataQualityChecker(df, "test")
+        checker.check_value_range('value', min_val=0, max_val=100)
+        
+        assert checker.results[0]['status'] == 'FAIL'
+        # Проверяем, что в сообщении есть слово о нарушениях
+        message = checker.results[0]['message']
+        assert 'Нарушения' in message or 'нарушения' in message
     
     # ------------------------------------------------------------
     # ГРАНИЧНЫЙ ТЕСТ: все значения NULL
@@ -167,8 +157,5 @@ class TestDataQualityChecker:
         assert checker.results[0]['status'] == 'WARNING'
 
 
-# ------------------------------------------------------------
-# Запуск тестов
-# ------------------------------------------------------------
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "--tb=short"])
