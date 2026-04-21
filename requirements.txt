@@ -3,3 +3,4 @@ requests
 pyyaml
 sqlalchemy
 psycorg2-binary
+pytest
