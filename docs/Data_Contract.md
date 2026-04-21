@@ -51,3 +51,32 @@
 | country_name | string | No | Название страны | `country.value` |
 | indicator_code | string | No | Код индикатора | `indicator.id` |
 | indicator_name | string | No | Название индикатора | `indicator.value` |
+
+## Data Quality правила (Неделя 8)
+
+### Проверки качества данных
+
+| № | Правило | Слой | Критичность | Описание |
+|---|---------|------|-------------|----------|
+| 1 | Таблица не пустая | mart | FAIL | Таблица должна содержать хотя бы одну строку |
+| 2 | Нет NULL в year | mart | FAIL | Год не может быть пустым |
+| 3 | Нет NULL в country_iso3 | mart | FAIL | Код страны не может быть пустым |
+| 4 | Нет NULL в indicator_code | mart | FAIL | Код индикатора не может быть пустым |
+| 5 | NULL в value | mart | WARNING | Пропуски в value допустимы (2025 год) |
+| 6 | Уникальность бизнес-ключа | mart | FAIL | Комбинация (year, country_iso3, indicator_code) должна быть уникальной |
+| 7 | Диапазон year | mart | FAIL | Год должен быть в диапазоне 1960-2030 |
+| 8 | Диапазон value | mart | FAIL | ВВП должен быть в диапазоне 0-100000 |
+| 9 | Тип year | mart | WARNING | Должен быть int |
+| 10 | Тип value | mart | WARNING | Должен быть float |
+| 11 | Нет отрицательных value | mart | FAIL | ВВП не может быть отрицательным |
+
+### Бизнес-ключ
+`year` + `country_iso3` + `indicator_code`
+
+### Где запускаются проверки
+- Модуль: `src/dq.py`
+- Отчет: `data/dq_report.json`
+
+### Как запустить
+```bash
+python src/dq.py
