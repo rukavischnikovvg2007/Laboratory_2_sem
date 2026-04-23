@@ -382,7 +382,7 @@ if __name__ == "__main__":
         report = run_dq_checks(str(latest_mart), "mart_world_bank")
         
         # Сохраняем отчет
-        report_path = Path("data/dq_report.json")
+        report_path = Path("dq_report.json")
         with open(report_path, 'w', encoding='utf-8') as f:
             json.dump(report, f, indent=2, ensure_ascii=False)
         print(f"\n✅ Отчет сохранен: {report_path}")
