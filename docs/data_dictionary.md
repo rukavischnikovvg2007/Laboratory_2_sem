@@ -144,22 +144,22 @@
 ## Примеры строк
 
 ### Старые данные (1960 год)
-year: 1960
-value: 1162.12
-country_name: Germany
-indicator_name: GDP per capita (current US$)
+- year: 1960
+- value: 1162.12
+- country_name: Germany
+- indicator_name: GDP per capita (current US$)
 
 ### Новые данные (2024 год)
-year: 2024
-value: 56103.73
-country_name: Germany
-indicator_name: GDP per capita (current US$)
+- year: 2024
+- value: 56103.73
+- country_name: Germany
+- indicator_name: GDP per capita (current US$)
 
 ### Будущий год (без данных)
-year: 2025
-value: NULL
-country_name: Germany
-indicator_name: GDP per capita (current US$)
+- year: 2025
+- value: NULL
+- country_name: Germany
+- indicator_name: GDP per capita (current US$)
 
 ---
 
