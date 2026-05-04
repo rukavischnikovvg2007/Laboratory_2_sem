@@ -1,0 +1,13 @@
+# ДИАГНОСТИКА: Postgres БЕЗ volume (данные будут теряться)
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: test_db
+    ports:
+      - "5433:5432"  # используем порт 5433, чтобы не конфликтовать с существующим Postgres
+    # ⚠️ ВНИМАНИЕ: НЕТ volume! Данные будут жить только внутри контейнера
