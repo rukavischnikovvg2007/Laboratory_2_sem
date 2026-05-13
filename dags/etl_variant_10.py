@@ -13,7 +13,7 @@ default_args = {
 
 with DAG(
     dag_id="etl_variant_10",
-    start_date=pendulum.datetime(2026, 5, 1, tz="UTC"),
+    start_date=pendulum.today('UTC').add(days=-1),
     schedule="*/5 * * * *",
     catchup=False,
     default_args=default_args,
@@ -32,7 +32,7 @@ with DAG(
 
     load = BashOperator(
         task_id="load",
-        bash_command=f"cd {PROJECT_DIR} && python {PROJECT_DIR}/src/load.py {CONFIG}",
+        bash_command=f"cd {PROJECT_DIR} && python {PROJECT_DIR}/src/load_to_postgres.py {CONFIG}",
 )
 
     dq = BashOperator(
