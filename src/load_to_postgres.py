@@ -60,13 +60,13 @@ def load_to_postgres(config_path, mode="full"):
     # 5. ПАРАМЕТРЫ ПОДКЛЮЧЕНИЯ К POSTGRESQL (ИСПРАВЛЕНО!)
     # Используем имя сервиса из docker-compose.yml
     DB_CONFIG = {
-        "host": "postgres",  # ← ИМЯ СЕРВИСА из docker-compose.yml
-        "port": 5432,        # ← ВНУТРЕННИЙ порт контейнера
+        "host": "postgres",
+        "port": 5432,
         "database": "analytics",
-        "user": "student",
-        "password": "student_pw"
+        "user": "airflow",
+        "password": "airflow"
     }
-    
+
     TABLE_NAME = "mart_world_bank"
     
     try:
