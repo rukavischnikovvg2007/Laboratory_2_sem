@@ -1,0 +1,24 @@
+{
+  "method": "Anomaly Detection",
+  "data": {
+    "years_range": [
+      1960,
+      2024
+    ],
+    "total_years": 65,
+    "missing_values": 1
+  },
+  "z_score": {
+    "threshold": 3,
+    "anomalies_count": 0,
+    "anomaly_years": []
+  },
+  "iqr": {
+    "q1": 6659.16546576017,
+    "q3": 42350.9217211489,
+    "lower_bound": -46878.468917322934,
+    "upper_bound": 95888.556104232,
+    "anomalies_count": 0,
+    "anomaly_years": []
+  }
+}
