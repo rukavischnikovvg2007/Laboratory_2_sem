@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Env files
+.env
+*.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Data (если большие файлы)
+data/raw/*.json
+data/mart/*.csv
+data/normalized/*.csv
+
+# Logs
+*.log
