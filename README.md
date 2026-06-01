@@ -22,6 +22,7 @@ python -m src.pipeline --config configs/variant_10.yml --mode full
 python src/dq.py
 ```
 ### 4. Просмотр отчётов
+
 | Артефакт |	Путь |
 |---------|----------|-----|
 | DQ отчёт | data/dq_report.json |
