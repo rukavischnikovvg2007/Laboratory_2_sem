@@ -21,6 +21,12 @@ python -m src.pipeline --config configs/variant_10.yml --mode full
 ```bash
 python src/dq.py
 ```
+
+### 4. Генерация LLM-сводки
+```bash
+python src/llm_summary.py
+```
+
 ### 4. Просмотр отчётов
 
 | Артефакт | Путь |
