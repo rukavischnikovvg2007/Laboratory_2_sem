@@ -67,7 +67,11 @@ Laboratory_2_sem-main/
 │   ├── Implementation_Plan.md
 │   ├── data_dictionary.md
 │   ├── bi/                 # Скриншоты BI дашборда
+|       ├── chart_ranking.png
+|       ├── chart_timeseries.png
+|       └── dashboard_overview.png
 │   ├── llm/                # LLM сводка
+|       └── summary.md
 │   ├── llm_rules.md        # Правила использования LLM
 │   └── LLM_Usage_Log.md    # Журнал работы с LLM
 ├── notebooks/              # Jupyter ноутбуки
