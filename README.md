@@ -35,7 +35,14 @@ LLM сводка	docs/llm/summary.md
 ## Структура проекта
 ```text
 Laboratory_2_sem-main/
-├── src/                    # Исходный код
+├── src/                   # Исходный код
+│   ├── diagnostic_append.py
+│   ├── diagnostic_assert.py
+│   ├── diagnostic_dates.py
+│   ├── diagnostic_units.py
+│   ├── load.py
+│   ├── sql_checks.py
+│   ├── transaction_demo.py
 │   ├── extract.py          # Извлечение данных из API
 │   ├── transform.py        # Трансформация в normalized и mart
 │   ├── load_to_postgres.py # Загрузка в PostgreSQL
@@ -43,23 +50,44 @@ Laboratory_2_sem-main/
 │   ├── pipeline.py         # ETL пайплайн
 │   └── __init__.py
 ├── data/                   # Данные
+│   ├── mart.db
 │   ├── raw/                # Сырые данные из API
 │   ├── normalized/         # Нормализованные данные
 │   ├── mart/               # Витрина данных
-│   └── dq_report.json      # Отчёт о качестве данных
+│   └── state/             
+|       └── state.json      # Отчёт о качестве данных
 ├── configs/                # Конфигурационные файлы
 │   └── variant_10.yml
 ├── docs/                   # Документация и отчёты
+│   ├── sql_checks.md
+│   ├── Airflow/
+│   ├── figures/
+│   ├── ml/
+│   ├── Data_Contract.md
+│   ├── Implementation_Plan.md
+│   ├── data_dictionary.md
 │   ├── bi/                 # Скриншоты BI дашборда
 │   ├── llm/                # LLM сводка
 │   ├── llm_rules.md        # Правила использования LLM
 │   └── LLM_Usage_Log.md    # Журнал работы с LLM
 ├── notebooks/              # Jupyter ноутбуки
+│   ├── week3_eda.ipynb
+│   ├── week4_mart.ipynb
+│   ├── week7_viz.ipynb
+│   ├── broken_week13_ml.ipynb
 │   └── week13_ml.ipynb     # Анализ аномалий
 ├── reference/              # Справочные данные
 │   └── countries.csv       # Справочник стран
 ├── tests/                  # Тесты
 │   └── test_dq.py          # Тесты DQ модуля
+├── .env
+├── broken_env.py
+├── broken_pandas_read.py
+├── broken_requests.py
+├── docker-compose.no-volume.yml
+├── load_to_postgres.py
+├── many_to_many_demo.py
+├── dq_report.json
 ├── docker-compose.yaml     # Docker для Airflow
 ├── docker-compose-postgres.yml  # Docker для PostgreSQL и Metabase
 ├── requirements.txt        # Зависимости Python
