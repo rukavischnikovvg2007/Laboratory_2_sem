@@ -22,13 +22,14 @@ python -m src.pipeline --config configs/variant_10.yml --mode full
 python src/dq.py
 ```
 ### 4. Просмотр отчётов
-Артефакт	Путь
-DQ отчёт	data/dq_report.json
-BI дашборд	Скриншоты в docs/bi/
-Анализ аномалий	notebooks/week13_ml.ipynb
-LLM сводка	docs/llm/summary.md
-Правила LLM	docs/llm_rules.md
-Лог использования LLM	docs/LLM_Usage_Log.md
+| Артефакт |	Путь |
+|---------|----------|-----|
+| DQ отчёт | data/dq_report.json |
+| BI дашборд |	Скриншоты в docs/bi/ |
+| Анализ аномалий	| notebooks/week13_ml.ipynb |
+| LLM сводка |	docs/llm/summary.md |
+| Правила LLM |	docs/llm_rules.md |
+| Лог использования | LLM	docs/LLM_Usage_Log.md |
 
 ---
 
