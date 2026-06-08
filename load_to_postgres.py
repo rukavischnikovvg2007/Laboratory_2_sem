@@ -1,6 +1,6 @@
 """
 ETL: Load stage для PostgreSQL (Docker)
-Загружает mart в PostgreSQL контейнер
+Загружает mart в PostgreSQL контейнер с защитой от дублей (DELETE + INSERT)
 """
 
 import pandas as pd
@@ -8,10 +8,10 @@ import psycopg2
 from pathlib import Path
 import sys
 import yaml
+import argparse
 from sqlalchemy import create_engine
 
 def get_nested_value(config, keys, default=None):
-    """Безопасно получает значение из вложенного словаря"""
     for key in keys:
         if isinstance(config, dict):
             config = config.get(key)
@@ -21,13 +21,16 @@ def get_nested_value(config, keys, default=None):
             return default
     return config
 
-def load_to_postgres(config_path, mode="full"):
-    """Загружает mart в PostgreSQL (Docker контейнер)"""
+def load_to_postgres(config_path, run_date=None, start_date=None, end_date=None, mode="incremental"):
+    """Загружает mart в PostgreSQL с защитой от дублей (DELETE + INSERT)"""
     
     print("="*60)
     print("СТАДИЯ 3: LOAD (загрузка в PostgreSQL Docker)")
     print("="*60)
     print(f"Режим: {mode}")
+    
+    if run_date:
+        print(f"📅 Run date: {run_date}")
     
     # 1. Загружаем конфиг
     with open(config_path, 'r', encoding='utf-8') as f:
@@ -39,149 +42,153 @@ def load_to_postgres(config_path, mode="full"):
         variant_num = get_nested_value(config, ['variant_id'], '10')
         variant_id = f"variant_{variant_num}"
     
-    # 3. Находим самый свежий mart-файл
+    # 3. Определяем mart-файл по run_date
     mart_dir = Path(f"data/mart/{variant_id}")
-    mart_files = list(mart_dir.glob("mart_yearly_*.csv"))
     
-    if not mart_files:
-        print(f"❌ Ошибка: нет mart-файла в {mart_dir}!")
-        print("   Сначала выполните стадию TRANSFORM")
-        return False
+    if run_date:
+        mart_file = mart_dir / f"mart_{run_date}.csv"
+        if not mart_file.exists():
+            print(f"⚠️ Файл {mart_file} не найден, ищу самый свежий...")
+            mart_files = list(mart_dir.glob("mart_*.csv"))
+            if not mart_files:
+                print(f"❌ Ошибка: нет mart-файла в {mart_dir}!")
+                return False
+            mart_file = max(mart_files, key=lambda p: p.stat().st_mtime)
+    else:
+        mart_files = list(mart_dir.glob("mart_*.csv"))
+        if not mart_files:
+            print(f"❌ Ошибка: нет mart-файла в {mart_dir}!")
+            return False
+        mart_file = max(mart_files, key=lambda p: p.stat().st_mtime)
     
-    latest = max(mart_files, key=lambda p: p.stat().st_mtime)
-    print(f"📁 Файл: {latest.name}")
+    print(f"📁 Файл: {mart_file.name}")
     
     # 4. Загружаем данные
-    df = pd.read_csv(latest)
+    df = pd.read_csv(mart_file)
     print(f"📊 Строк в файле: {len(df)}")
     print(f"   Колонок: {len(df.columns)}")
-    print(f"   Колонки: {list(df.columns)}")
     
-    # 5. ПАРАМЕТРЫ ПОДКЛЮЧЕНИЯ К POSTGRESQL (Docker!)
-    # ВНИМАНИЕ: порт 5433, потому что в docker-compose.yml проброшен как "5433:5432"
+    # 5. Определяем период для удаления (из run_date или из данных)
+    if run_date:
+        period_year = int(run_date[:4])
+    elif 'year' in df.columns:
+        period_year = int(df['year'].iloc[0]) if len(df) > 0 else None
+    else:
+        period_year = None
+    
+    print(f"📅 Период для удаления: {period_year}")
+    
+    # 6. Параметры подключения
     DB_CONFIG = {
-        "host": "localhost",      # или "127.0.0.1"
-        "port": 5433,             # ⚠️ НЕ 5432, а 5433!
+        "host": "postgres",
+        "port": 5432,
         "database": "analytics",
-        "user": "student",
-        "password": "student_pw"
+        "user": "airflow",
+        "password": "airflow"
     }
-    
-    TABLE_NAME = "mart_world_bank"  # Имя таблицы в PostgreSQL
+    TABLE_NAME = "mart_world_bank"
     
     try:
-        # Создаем подключение через SQLAlchemy (для pandas)
+        print(f"\n🔌 Подключение к PostgreSQL: {DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}")
+        
         engine = create_engine(
             f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}"
             f"@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
         )
         
-        # Также создаем сырое подключение для выполнения команд
         conn = psycopg2.connect(**DB_CONFIG)
-        conn.autocommit = True
+        conn.autocommit = False  # Включаем транзакцию
+        cur = conn.cursor()
         
         print("✅ Подключение к PostgreSQL успешно")
         
-        # 6. Загружаем в зависимости от режима
+        # 7. Загружаем в зависимости от режима
         if mode == "full":
-            # ПОЛНАЯ ЗАГРУЗКА: удаляем старую таблицу и создаем заново
+            # Полная перезагрузка (TRUNCATE)
             try:
-                conn.execute(f"DROP TABLE IF EXISTS {TABLE_NAME};")
+                cur.execute(f"DROP TABLE IF EXISTS {TABLE_NAME};")
                 print("   🗑️ Старая таблица удалена")
             except Exception as e:
                 print(f"   ⚠️ Не удалось удалить таблицу: {e}")
             
-            # Создаем таблицу и загружаем данные
             df.to_sql(TABLE_NAME, engine, if_exists="replace", index=False)
             print(f"   ✅ Данные загружены (full mode)")
             
         elif mode == "incremental":
-            # ИНКРЕМЕНТАЛЬНАЯ ЗАГРУЗКА: добавляем только новые годы
+            # Инкрементальная загрузка с защитой от дублей (DELETE + INSERT)
             
             # Проверяем, существует ли таблица
-            cursor = conn.cursor()
-            cursor.execute("""
+            cur.execute("""
                 SELECT EXISTS (
                     SELECT FROM information_schema.tables 
                     WHERE table_name = %s
                 );
             """, (TABLE_NAME,))
-            table_exists = cursor.fetchone()[0]
+            table_exists = cur.fetchone()[0]
             
-            if table_exists:
-                # Получаем максимальный год в базе
-                cursor.execute(f"SELECT MAX(year) FROM {TABLE_NAME};")
-                max_year_in_db = cursor.fetchone()[0]
-                print(f"   📅 Максимальный год в базе: {max_year_in_db}")
-                
-                # Берем только новые годы (больше watermark)
-                df_new = df[df['year'] > max_year_in_db]
-                print(f"   📊 Новых строк для добавления: {len(df_new)}")
-                
-                if len(df_new) > 0:
-                    df_new.to_sql(TABLE_NAME, engine, if_exists="append", index=False)
-                    print(f"   ✅ Добавлено {len(df_new)} новых строк")
-                    
-                    # Показываем диапазон добавленных годов
-                    min_new_year = df_new['year'].min()
-                    max_new_year = df_new['year'].max()
-                    print(f"   📅 Добавлены годы: {int(min_new_year)} - {int(max_new_year)}")
-                else:
-                    print("   ✅ Новых данных нет")
+            if not table_exists:
+                # Создаём таблицу через pandas
+                df.head(0).to_sql(TABLE_NAME, engine, if_exists="replace", index=False)
+                print("   📋 Таблица создана")
+            
+            # Удаляем данные за текущий период (по году)
+            if period_year:
+                cur.execute(f"DELETE FROM {TABLE_NAME} WHERE year = %s;", (period_year,))
+                deleted_count = cur.rowcount
+                print(f"   🗑️ Удалено строк за {period_year}: {deleted_count}")
             else:
-                # Таблицы нет — создаем (первый запуск)
-                df.to_sql(TABLE_NAME, engine, if_exists="replace", index=False)
-                print(f"   ✅ Таблица создана, загружено {len(df)} строк")
+                print("   ⚠️ Не удалось определить период для удаления")
+            
+            # Вставляем новые данные
+            df.to_sql(TABLE_NAME, engine, if_exists="append", index=False)
+            print(f"   ✅ Добавлено {len(df)} строк")
         
-        # 7. Проверяем результат
-        cursor = conn.cursor()
-        cursor.execute(f"SELECT COUNT(*) FROM {TABLE_NAME};")
-        count = cursor.fetchone()[0]
+        # Фиксируем транзакцию
+        conn.commit()
+        
+        # 8. Проверяем результат
+        cur.execute(f"SELECT COUNT(*) FROM {TABLE_NAME};")
+        count = cur.fetchone()[0]
         print(f"\n📊 Итоговое количество строк в таблице: {count}")
         
-        # Показываем диапазон лет в базе
-        cursor.execute(f"SELECT MIN(year), MAX(year) FROM {TABLE_NAME};")
-        result = cursor.fetchone()
-        if result:
-            min_year, max_year = result
-            if min_year and max_year:
-                print(f"📅 Диапазон лет в базе: {int(min_year)} - {int(max_year)}")
+        cur.execute(f"SELECT MIN(year), MAX(year) FROM {TABLE_NAME};")
+        result = cur.fetchone()
+        if result and result[0] and result[1]:
+            print(f"📅 Диапазон лет в базе: {int(result[0])} - {int(result[1])}")
         
-        # Показываем первые 5 строк
-        print("\n📋 Пример данных (первые 5 строк):")
-        print(df.head().to_string())
+        # Проверка на дубликаты (для отчёта)
+        cur.execute("""
+            SELECT year, COUNT(*) as cnt 
+            FROM mart_world_bank 
+            GROUP BY year 
+            HAVING COUNT(*) > 1;
+        """)
+        duplicates = cur.fetchall()
+        if duplicates:
+            print(f"\n⚠️ ВНИМАНИЕ: Найдены дубликаты по годам:")
+            for year, cnt in duplicates:
+                print(f"   Год {year}: {cnt} строк (ожидается 1 группа)")
+        else:
+            print(f"\n✅ Проверка дублей: OK (нет дублей по годам)")
         
         conn.close()
         return True
         
     except Exception as e:
-        print(f"\n❌ ОШИБКА подключения к PostgreSQL: {e}")
-        print("\nПроверьте:")
-        print("  1. Запущен ли Docker контейнер: docker ps")
-        print("  2. Работает ли PostgreSQL: docker exec -it lab_postgres psql -U student -d analytics -c 'SELECT 1;'")
-        print("  3. Правильный ли порт: 5433 (не 5432!)")
-        print("  4. Существует ли база данных 'analytics'")
+        print(f"\n❌ ОШИБКА: {e}")
+        if 'conn' in locals():
+            conn.rollback()
+            conn.close()
         return False
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Использование: python load_to_postgres.py <config_path> [--mode full|incremental]")
-        print("Пример: python load_to_postgres.py configs/variant_10.yml --mode full")
-        print("\nПеред запуском убедитесь, что Docker контейнер запущен:")
-        print("  docker compose up -d")
-        sys.exit(1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", required=True)
+    parser.add_argument("--run_date")
+    parser.add_argument("--start")
+    parser.add_argument("--end")
+    parser.add_argument("--mode", default="incremental", choices=["full", "incremental"])
+    args = parser.parse_args()
     
-    # Проверяем режим
-    mode = "full"
-    if len(sys.argv) > 2 and sys.argv[2] == "--mode":
-        mode = sys.argv[3] if len(sys.argv) > 3 else "full"
-    
-    # Загружаем в PostgreSQL
-    success = load_to_postgres(sys.argv[1], mode)
-    
-    if success:
-        print("\n✅ Готово! Данные загружены в PostgreSQL.")
-        print("   Теперь можно подключать Metabase к базе данных 'analytics'")
-    else:
-        print("\n❌ Загрузка не удалась. Проверьте ошибки выше.")
-        sys.exit(1)
+    success = load_to_postgres(args.config, args.run_date, args.start, args.end, args.mode)
+    sys.exit(0 if success else 1)
